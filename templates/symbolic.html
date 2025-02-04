@@ -1,0 +1,162 @@
+<!-- templates/symbolic.html -->
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Enhanced Symbolic Computation Module</title>
+    <!-- Include Bootstrap for styling -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-4">Enhanced Symbolic Computation Module</h1>
+        <p>Enter a mathematical expression (or equation) and choose an operation. Fields will appear as needed.</p>
+
+        <!-- Display error messages -->
+        {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="post">
+            <!-- Expression or Equation / ODE input -->
+            <div class="form-group" id="expression-group">
+                <label for="expression">Expression / Equation / ODE:</label>
+                <input type="text" class="form-control" id="expression" name="expression"
+                       placeholder="e.g., exp(x)*sin(x), x**2 - 4 = 0, or for ODE: f(x).diff(x)-f(x)=0" required>
+            </div>
+
+            <!-- Operation selection -->
+            <div class="form-group">
+                <label for="operation">Operation:</label>
+                <select class="form-control" id="operation" name="operation">
+                    <option value="differentiate">Differentiate</option>
+                    <option value="integrate">Integrate</option>
+                    <option value="taylor">Taylor Series Expansion</option>
+                    <option value="simplify">Simplify Expression</option>
+                    <option value="limit">Compute Limit</option>
+                    <option value="solve">Solve Equation</option>
+                    <option value="partial_fraction">Partial Fraction Decomposition</option>
+                    <option value="factor">Factorize Expression</option>
+                    <option value="expand">Expand Expression</option>
+                    <option value="solve_system">Solve System of Equations</option>
+                    <option value="solve_ode">Solve ODE</option>
+                    <option value="matrix_determinant">Matrix Determinant</option>
+                    <option value="matrix_inverse">Matrix Inverse</option>
+                    <option value="matrix_eigen">Matrix Eigenvalues/Eigenvectors</option>
+                </select>
+            </div>
+
+            <!-- Optional: Variables for multivariable expressions -->
+            <div class="form-group" id="variables-group" style="display: none;">
+                <label for="variables">Variables (comma-separated, e.g., x or x, y):</label>
+                <input type="text" class="form-control" id="variables" name="variables" placeholder="Default is x">
+            </div>
+
+            <!-- Taylor series order -->
+            <div class="form-group" id="order-group" style="display: none;">
+                <label for="order">Order (for Taylor Series):</label>
+                <input type="number" class="form-control" id="order" name="order" placeholder="e.g., 10">
+            </div>
+
+            <!-- Limit computation: limit point -->
+            <div class="form-group" id="limit-point-group" style="display: none;">
+                <label for="limit_point">Limit Point (for Limit Computation):</label>
+                <input type="text" class="form-control" id="limit_point" name="limit_point" placeholder="e.g., 0 or 1">
+            </div>
+
+            <!-- System of equations fields -->
+            <div class="form-group" id="system-fields" style="display: none;">
+                <label for="system_equations">System of Equations (separate each with a semicolon or newline):</label>
+                <textarea class="form-control" id="system_equations" name="system_equations" rows="3"
+                          placeholder="e.g., x + y = 3; x - y = 1"></textarea>
+                <label for="system_variables" class="mt-2">System Variables (comma-separated, e.g., x, y):</label>
+                <input type="text" class="form-control" id="system_variables" name="system_variables" placeholder="e.g., x, y">
+            </div>
+
+            <!-- ODE fields -->
+            <div class="form-group" id="ode-fields" style="display: none;">
+                <label for="ode_function">Function Name (for ODE, e.g., f):</label>
+                <input type="text" class="form-control" id="ode_function" name="ode_function" placeholder="e.g., f">
+                <label for="ode_indep" class="mt-2">Independent Variable (default is x):</label>
+                <input type="text" class="form-control" id="ode_indep" name="ode_indep" placeholder="e.g., x">
+            </div>
+
+            <!-- Matrix fields -->
+            <div class="form-group" id="matrix-fields" style="display: none;">
+                <label for="matrix">Matrix (as a Python list of lists, e.g., [[1, 2], [3, 4]]):</label>
+                <textarea class="form-control" id="matrix" name="matrix" rows="2" placeholder="e.g., [[1, 2], [3, 4]]"></textarea>
+            </div>
+
+            <!-- Optional: Checkbox for plotting -->
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" value="1" id="plot" name="plot">
+                <label class="form-check-label" for="plot">
+                    Display Graph of the Function and Computed Result (if applicable)
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Compute</button>
+        </form>
+
+        <!-- Display the computed result -->
+        {% if result %}
+        <hr>
+        <h3>Result:</h3>
+        <pre>{{ result }}</pre>
+        {% endif %}
+
+        <!-- Display the generated graph -->
+        {% if plot_html %}
+        <hr>
+        <h3>Graph:</h3>
+        <div>
+            {{ plot_html|safe }}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- JavaScript to toggle extra input fields based on the selected operation -->
+    <script>
+        function updateExtraFields() {
+            var operation = document.getElementById('operation').value;
+            // Hide all optional fields by default
+            document.getElementById('variables-group').style.display = 'none';
+            document.getElementById('order-group').style.display = 'none';
+            document.getElementById('limit-point-group').style.display = 'none';
+            document.getElementById('system-fields').style.display = 'none';
+            document.getElementById('ode-fields').style.display = 'none';
+            document.getElementById('matrix-fields').style.display = 'none';
+
+            // For standard expression operations, show variables field
+            if (['differentiate', 'integrate', 'taylor', 'simplify', 'limit', 'solve', 'partial_fraction', 'factor', 'expand'].includes(operation)) {
+                document.getElementById('variables-group').style.display = 'block';
+            }
+            // Taylor series order
+            if (operation === 'taylor') {
+                document.getElementById('order-group').style.display = 'block';
+            }
+            // Limit computation: limit point
+            if (operation === 'limit') {
+                document.getElementById('limit-point-group').style.display = 'block';
+            }
+            // Solve system of equations
+            if (operation === 'solve_system') {
+                document.getElementById('system-fields').style.display = 'block';
+            }
+            // Solve ODE
+            if (operation === 'solve_ode') {
+                document.getElementById('ode-fields').style.display = 'block';
+            }
+            // Matrix operations
+            if (['matrix_determinant', 'matrix_inverse', 'matrix_eigen'].includes(operation)) {
+                document.getElementById('matrix-fields').style.display = 'block';
+            }
+        }
+        document.getElementById('operation').addEventListener('change', updateExtraFields);
+        updateExtraFields();
+    </script>
+</body>
+</html>
