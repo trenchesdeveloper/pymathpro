@@ -1,31 +1,28 @@
 # app.py
 from flask import Flask, render_template, request
 import logging
-from modules import symbolic  # Import our enhanced symbolic module
+from modules import symbolic, numerical  # Import both modules
 
 # Configure logging for debugging
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 
-
 @app.route('/')
 def home():
     return render_template('index.html')
 
-
 @app.route('/symbolic', methods=['GET', 'POST'])
 def symbolic_page():
+    # [Symbolic module route as defined earlier...]
     result = None
     error = None
     plot_html = None
 
     if request.method == 'POST':
-        # Retrieve common fields
         expression = request.form.get('expression')
         operation = request.form.get('operation')
         plot_option = request.form.get('plot')
-        # Optional: Variables for multivariable support (default "x")
         variables = request.form.get('variables') or "x"
 
         try:
@@ -59,7 +56,6 @@ def symbolic_page():
                 system_variables = request.form.get('system_variables') or "x"
                 result = symbolic.solve_system(system_equations, system_variables)
             elif operation == 'solve_ode':
-                # Use the "expression" field for the ODE string.
                 ode_function = request.form.get('ode_function')
                 ode_indep = request.form.get('ode_indep') or "x"
                 result = symbolic.solve_ode(expression, ode_function, ode_indep)
@@ -77,10 +73,8 @@ def symbolic_page():
         except Exception as e:
             error = str(e)
 
-        # Generate plot for appropriate operations
         if plot_option and operation in ['differentiate', 'integrate', 'taylor']:
             try:
-                # Use the first variable (in case of multivariable input) for plotting.
                 first_var = variables.split(',')[0].strip()
                 plot_html = symbolic.generate_plot(expression, result, operation, var_str=first_var)
             except Exception as e:
@@ -88,6 +82,48 @@ def symbolic_page():
 
     return render_template('symbolic.html', result=result, error=error, plot_html=plot_html)
 
+@app.route('/numerical', methods=['GET', 'POST'])
+def numerical_page():
+    result = None
+    error = None
+    plot_html = None
+    xs = None
+    ys = None
+
+    if request.method == 'POST':
+        method = request.form.get('method')
+        func_str = request.form.get('func')
+        try:
+            if method == 'differentiate':
+                x_val = float(request.form.get('x_val'))
+                h = float(request.form.get('h') or 1e-5)
+                result = numerical.numerical_derivative(func_str, x_val, h)
+            elif method == 'integrate':
+                a = float(request.form.get('a'))
+                b = float(request.form.get('b'))
+                n = int(request.form.get('n'))
+                result = numerical.trapezoidal_integration(func_str, a, b, n)
+            elif method == 'rk4':
+                x0 = float(request.form.get('x0'))
+                y0 = float(request.form.get('y0'))
+                h = float(request.form.get('h'))
+                steps = int(request.form.get('steps'))
+                xs, ys = numerical.rk4_solver(func_str, x0, y0, h, steps)
+                result = "ODE solution computed. See graph below."
+                import plotly.graph_objects as go
+                import plotly.io as pio
+                fig = go.Figure()
+                fig.add_trace(go.Scatter(x=xs, y=ys, mode='lines', name='ODE Solution'))
+                fig.update_layout(title="ODE Solution via RK4", xaxis_title='x', yaxis_title='y')
+                plot_html = pio.to_html(fig, full_html=False)
+            elif method == 'newton':
+                x0 = float(request.form.get('x0'))
+                result = numerical.newton_raphson(func_str, x0)
+            else:
+                error = "Invalid numerical method selected."
+        except Exception as e:
+            error = str(e)
+    return render_template('numerical.html', result=result, error=error, plot_html=plot_html, xs=xs, ys=ys)
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,0 +1,119 @@
+<!-- templates/numerical.html -->
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Numerical Methods Module</title>
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-4">Numerical Methods Module</h1>
+        <p>Select a numerical method and provide the required parameters.</p>
+
+        <!-- Display error messages -->
+        {% if error %}
+        <div class="alert alert-danger" role="alert">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="post">
+            <div class="form-group">
+                <label for="method">Numerical Method:</label>
+                <select class="form-control" id="method" name="method">
+                    <option value="differentiate">Numerical Differentiation</option>
+                    <option value="integrate">Trapezoidal Integration</option>
+                    <option value="rk4">ODE Solver (RK4)</option>
+                    <option value="newton">Newton-Raphson Root Finding</option>
+                </select>
+            </div>
+
+            <!-- Common Function Input -->
+            <div class="form-group">
+                <label for="func">Function Expression (in terms of x, and y for ODE):</label>
+                <input type="text" class="form-control" id="func" name="func" placeholder="e.g., sin(x), or for ODE: x*y" required>
+            </div>
+
+            <!-- Fields for Differentiation -->
+            <div class="form-group" id="diff-fields" style="display: none;">
+                <label for="x_val">Point x:</label>
+                <input type="number" step="any" class="form-control" id="x_val" name="x_val" placeholder="e.g., 1.0">
+                <label for="h">Step size h (default 1e-5):</label>
+                <input type="number" step="any" class="form-control" id="h" name="h" placeholder="e.g., 1e-5">
+            </div>
+
+            <!-- Fields for Integration -->
+            <div class="form-group" id="int-fields" style="display: none;">
+                <label for="a">Lower Limit a:</label>
+                <input type="number" step="any" class="form-control" id="a" name="a" placeholder="e.g., 0">
+                <label for="b">Upper Limit b:</label>
+                <input type="number" step="any" class="form-control" id="b" name="b" placeholder="e.g., 3.14">
+                <label for="n">Number of Intervals n:</label>
+                <input type="number" class="form-control" id="n" name="n" placeholder="e.g., 100">
+            </div>
+
+            <!-- Fields for ODE Solver (RK4) -->
+            <div class="form-group" id="ode-fields" style="display: none;">
+                <label for="x0">Initial x (x0):</label>
+                <input type="number" step="any" class="form-control" id="x0" name="x0" placeholder="e.g., 0">
+                <label for="y0">Initial y (y0):</label>
+                <input type="number" step="any" class="form-control" id="y0" name="y0" placeholder="e.g., 1">
+                <label for="h_ode">Step size h:</label>
+                <input type="number" step="any" class="form-control" id="h_ode" name="h" placeholder="e.g., 0.1">
+                <label for="steps">Number of Steps:</label>
+                <input type="number" class="form-control" id="steps" name="steps" placeholder="e.g., 50">
+            </div>
+
+            <!-- Fields for Newton-Raphson -->
+            <div class="form-group" id="newton-fields" style="display: none;">
+                <label for="x0_newton">Initial Guess (x0):</label>
+                <input type="number" step="any" class="form-control" id="x0_newton" name="x0" placeholder="e.g., 1">
+            </div>
+
+            <button type="submit" class="btn btn-primary">Compute</button>
+        </form>
+
+        <!-- Display result -->
+        {% if result %}
+        <hr>
+        <h3>Result:</h3>
+        <pre>{{ result }}</pre>
+        {% endif %}
+
+        <!-- Display plot if available -->
+        {% if plot_html %}
+        <hr>
+        <h3>Graph:</h3>
+        <div>
+            {{ plot_html|safe }}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- JavaScript to toggle fields based on selected numerical method -->
+    <script>
+        function updateNumFields() {
+            var method = document.getElementById('method').value;
+            document.getElementById('diff-fields').style.display = 'none';
+            document.getElementById('int-fields').style.display = 'none';
+            document.getElementById('ode-fields').style.display = 'none';
+            document.getElementById('newton-fields').style.display = 'none';
+
+            if (method === 'differentiate') {
+                document.getElementById('diff-fields').style.display = 'block';
+            } else if (method === 'integrate') {
+                document.getElementById('int-fields').style.display = 'block';
+            } else if (method === 'rk4') {
+                document.getElementById('ode-fields').style.display = 'block';
+            } else if (method === 'newton') {
+                document.getElementById('newton-fields').style.display = 'block';
+            }
+        }
+        document.getElementById('method').addEventListener('change', updateNumFields);
+        updateNumFields();
+    </script>
+</body>
+</html>
