@@ -1,14 +1,13 @@
-<!-- templates/index.html -->
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title>Math Methods Calculator</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-</head>
-<body>
-    <h1>Welcome to the Math Methods Calculator</h1>
-    <p>This is the home page of the "Development of an Integrated Mathematical Methods Calculator for Symbolic and Numerical Computation" project.</p>
-    <p>More functionalities will be added soon.</p>
-</body>
-</html>
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mt-4">Welcome to the Math Methods Calculator</h1>
+<p>
+    This tool integrates both symbolic and numerical methods for various mathematical computations.
+    Use the navigation bar at the top to access the different modules:
+</p>
+<ul>
+    <li><strong>Symbolic:</strong> Perform symbolic computations such as differentiation, integration, and more.</li>
+    <li><strong>Numerical:</strong> Solve numerical problems like numerical differentiation, integration, ODE solving, and root finding.</li>
+</ul>
+<p>Get started by selecting a module from the navigation menu above.</p>
+{% endblock %}

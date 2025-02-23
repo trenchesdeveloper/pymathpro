@@ -1,0 +1,69 @@
+<!-- templates/ode_compare.html -->
+{% extends "base.html" %}
+{% block content %}
+<h1 class="mt-4">ODE Comparison: Series vs Exact Solution</h1>
+<p>
+    Enter an ODE in the form <em>y' = F(x, y)</em> by providing the function F(x,y) (i.e. the right-hand side),
+    the initial condition y(0), and selecting the method (ADM or ODM). Also specify the series order and x–range for evaluation.
+    The module will compute a series solution, obtain the exact solution, compare them, and display the average error along with a conclusion.
+</p>
+
+{% if error %}
+<div class="alert alert-danger" role="alert">
+    {{ error }}
+</div>
+{% endif %}
+
+<form method="post">
+    <div class="form-group">
+        <label for="ode_str">ODE (F(x,y) for y' = F(x,y)):</label>
+        <input type="text" class="form-control" id="ode_str" name="ode_str" placeholder="e.g., -y or x - y**2" required>
+    </div>
+    <div class="form-group">
+        <label for="y0">Initial Condition y(0):</label>
+        <input type="number" step="any" class="form-control" id="y0" name="y0" placeholder="e.g., 1" required>
+    </div>
+    <div class="form-group">
+        <label for="method_type">Method (ADM or ODM):</label>
+        <select class="form-control" id="method_type" name="method_type" required>
+            <option value="ADM">ADM</option>
+            <option value="ODM">ODM</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="order">Series Order:</label>
+        <input type="number" step="1" class="form-control" id="order" name="order" placeholder="e.g., 5" required>
+    </div>
+    <div class="form-group">
+        <label for="x_start">x–range start:</label>
+        <input type="number" step="any" class="form-control" id="x_start" name="x_start" placeholder="e.g., 0" required>
+    </div>
+    <div class="form-group">
+        <label for="x_end">x–range end:</label>
+        <input type="number" step="any" class="form-control" id="x_end" name="x_end" placeholder="e.g., 0.8" required>
+    </div>
+    <div class="form-group">
+        <label for="num_points">Number of Plot Points:</label>
+        <input type="number" step="1" class="form-control" id="num_points" name="num_points" placeholder="e.g., 100" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Compare Solutions</button>
+</form>
+
+{% if result %}
+<hr>
+<h3>Series Solution:</h3>
+<pre>{{ result.series }}</pre>
+<h3>Exact Solution:</h3>
+<pre>{{ result.exact }}</pre>
+<h3>Average Error:</h3>
+<p>{{ result.avg_error }}</p>
+<hr>
+<h3>Visualization:</h3>
+<div>
+    {{ plot_html|safe }}
+</div>
+<hr>
+<h3>Conclusion:</h3>
+<p>{{ conclusion }}</p>
+{% endif %}
+{% endblock %}
